@@ -1,2 +1,2 @@
 # dahlia-calculator
-Calculator app fpr dahliaOS
+Calculator application for dahliaOS

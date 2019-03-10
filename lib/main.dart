@@ -35,12 +35,10 @@ class CalculatorState extends State<Calculator> {
         editText = editText.replaceAll('e+', 'e');
         editText = editText.replaceAll('e', '*10^');
         Expression exp = p.parse(editText);
-        num outcome = double.parse(exp
-            .evaluate(EvaluationType.REAL, ContextModel())
-            .toStringAsPrecision(7));
-        editText = outcome.toString().replaceAll(RegExp(r'.0$'), '');
+        num outcome = exp.evaluate(EvaluationType.REAL, ContextModel());
+        editText = outcome.toStringAsPrecision(13).replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
       } catch (e) {
-        editText = 'you fuck';
+        editText = 'Error';
       }
     });
   }
@@ -106,9 +104,9 @@ class CalculatorState extends State<Calculator> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _buildButton(Colors.grey[400], '9', () => append('9')),
-                  _buildButton(Colors.grey[400], '8', () => append('8')),
                   _buildButton(Colors.grey[400], '7', () => append('7')),
+                  _buildButton(Colors.grey[400], '8', () => append('8')),
+                  _buildButton(Colors.grey[400], '9', () => append('9')),
                   _buildButton(Colors.grey, '\u00D7', () => append('*')),
                 ],
               ),
@@ -118,9 +116,9 @@ class CalculatorState extends State<Calculator> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _buildButton(Colors.grey[400], '6', () => append('6')),
-                  _buildButton(Colors.grey[400], '5', () => append('5')),
                   _buildButton(Colors.grey[400], '4', () => append('4')),
+                  _buildButton(Colors.grey[400], '5', () => append('5')),
+                  _buildButton(Colors.grey[400], '6', () => append('6')),
                   _buildButton(Colors.grey, '-', () => append('-')),
                 ],
               ),
@@ -130,9 +128,9 @@ class CalculatorState extends State<Calculator> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _buildButton(Colors.grey[400], '3', () => append('3')),
-                  _buildButton(Colors.grey[400], '2', () => append('2')),
                   _buildButton(Colors.grey[400], '1', () => append('1')),
+                  _buildButton(Colors.grey[400], '2', () => append('2')),
+                  _buildButton(Colors.grey[400], '3', () => append('3')),
                   _buildButton(Colors.grey, '+', () => append('+')),
                 ],
               ),

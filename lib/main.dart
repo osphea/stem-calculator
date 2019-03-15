@@ -19,7 +19,6 @@ const themePrimary = Colors.green;
 const themeAccent = Colors.greenAccent;
 const numColor = Color.fromRGBO(48, 47, 63, .94);
 const opColor = Color.fromRGBO(22, 21, 29, .93);
-const panColor=themeAccent;
 
 class CalculatorState extends State<Calculator> {
   TextSelection currentSelection = TextSelection(baseOffset: 0, extentOffset: 0);
@@ -142,8 +141,8 @@ class CalculatorState extends State<Calculator> {
     return MaterialApp(
       title: 'Calculator',
       theme: ThemeData(
-        primarySwatch: themePrimary,
-        accentColor: themeAccent,
+        primarySwatch: Colors.green,
+        accentColor: Colors.green[600],
       ),
       home: Scaffold(
         appBar: AppBar(
@@ -240,7 +239,7 @@ class CalculatorState extends State<Calculator> {
             Expanded(
               flex: 1,
               child: Container(
-              color: panColor,
+              color: Colors.green[600],
             ),
             ),
           ],

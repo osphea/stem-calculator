@@ -15,8 +15,11 @@ class Calculator extends StatefulWidget {
 const textFieldPadding = EdgeInsets.only(right: 8.0);
 const textFieldTextStyle = TextStyle(fontSize: 80.0, fontWeight: FontWeight.w300);
 const buttonTextStyle = TextStyle(fontSize: 32.0, fontWeight: FontWeight.w300, color: Colors.white);
+const themePrimary = Colors.green;
+const themeAccent = Colors.greenAccent;
 const numColor = Color.fromRGBO(48, 47, 63, .94);
 const opColor = Color.fromRGBO(22, 21, 29, .93);
+const panColor=themeAccent;
 
 class CalculatorState extends State<Calculator> {
   TextSelection currentSelection = TextSelection(baseOffset: 0, extentOffset: 0);
@@ -139,8 +142,8 @@ class CalculatorState extends State<Calculator> {
     return MaterialApp(
       title: 'Calculator',
       theme: ThemeData(
-        primarySwatch: Colors.green,
-        accentColor: Colors.greenAccent,
+        primarySwatch: themePrimary,
+        accentColor: themeAccent,
       ),
       home: Scaffold(
         appBar: AppBar(
@@ -165,6 +168,14 @@ class CalculatorState extends State<Calculator> {
                 focusNode: AlwaysDisabledFocusNode(),
               ),
             ),
+            Expanded(
+              flex: 5,
+              child:Row(
+          children: [
+            Expanded(
+              flex:26,
+              child:
+              Column(children:[
             Expanded(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -225,6 +236,15 @@ class CalculatorState extends State<Calculator> {
                 ],
               ),
             ),
+            ],),),
+            Expanded(
+              flex: 1,
+              child: Container(
+              color: panColor,
+            ),
+            ),
+          ],
+        ),),
           ],
         ),
       ),

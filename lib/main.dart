@@ -12,10 +12,51 @@ class Calculator extends StatefulWidget {
   CalculatorState createState() => CalculatorState();
 }
 
+const textFieldPadding = EdgeInsets.only(right: 8.0);
+const textFieldTextStyle = TextStyle(fontSize: 80.0, fontWeight: FontWeight.w300);
+const buttonTextStyle = TextStyle(fontSize: 32.0, fontWeight: FontWeight.w300, color: Colors.white);
+const themePrimary = Colors.green;
+const themeAccent = Colors.greenAccent;
+const numColor = Color.fromRGBO(48, 47, 63, .94);
+const opColor = Color.fromRGBO(22, 21, 29, .93);
+
 class CalculatorState extends State<Calculator> {
-  TextSelection currentSelection =
-      TextSelection(baseOffset: 0, extentOffset: 0);
-  TextEditingController controller = TextEditingController(text: '1234');
+  TextSelection currentSelection = TextSelection(baseOffset: 0, extentOffset: 0);
+  TextEditingController controller = TextEditingController(text: '');
+  final GlobalKey _textFieldKey = GlobalKey();
+  double _fontSize = textFieldTextStyle.fontSize;
+
+  void _onTextChanged() {
+    final inputWidth =
+        _textFieldKey.currentContext.size.width - textFieldPadding.horizontal;
+
+    final textPainter = TextPainter(
+      textDirection: TextDirection.ltr,
+      text: TextSpan(
+        text: controller.text,
+        style: textFieldTextStyle,
+      ),
+    );
+    textPainter.layout();
+
+    var textWidth = textPainter.width;
+    var fontSize = textFieldTextStyle.fontSize;
+
+    while (textWidth > inputWidth && fontSize > 40.0) {
+      fontSize -= 0.5;
+      textPainter.text = TextSpan(
+        text: controller.text,
+        style: textFieldTextStyle.copyWith(fontSize: fontSize),
+      );
+      textPainter.layout();
+      textWidth = textPainter.width;
+    }
+
+    setState(() {
+      _fontSize = fontSize;
+    });
+  }
+
   void append(String character) {
     setState(() {
       if (controller.selection.baseOffset >= 0) {
@@ -32,6 +73,7 @@ class CalculatorState extends State<Calculator> {
         controller.text += character;
       }
     });
+    _onTextChanged();
   }
 
   void clear([bool longPress = false]) {
@@ -54,6 +96,7 @@ class CalculatorState extends State<Calculator> {
         }
       }
     });
+    _onTextChanged();
   }
 
   void equals() {
@@ -72,6 +115,7 @@ class CalculatorState extends State<Calculator> {
         controller.text = 'Error';
       }
     });
+    _onTextChanged();
   }
 
   Widget _buildButton(Color color, String label, Function() func) {
@@ -83,11 +127,7 @@ class CalculatorState extends State<Calculator> {
           shape: BeveledRectangleBorder(),
           child: Text(
             label,
-            style: TextStyle(
-                fontSize: 32.0,
-                color: Colors.white,
-                fontWeight: FontWeight.w300
-            ),
+            style: buttonTextStyle,
           ),
           color: color,
           onPressed: func,
@@ -98,13 +138,11 @@ class CalculatorState extends State<Calculator> {
 
   @override
   Widget build(BuildContext context) {
-    Color numColor = Color.fromRGBO(48, 47, 63, .94);
-    Color opColor = Color.fromRGBO(22, 21, 29, .93);
     return MaterialApp(
       title: 'Calculator',
       theme: ThemeData(
         primarySwatch: Colors.green,
-        accentColor: Colors.greenAccent,
+        accentColor: Colors.green[600],
       ),
       home: Scaffold(
         appBar: AppBar(
@@ -118,13 +156,25 @@ class CalculatorState extends State<Calculator> {
             Expanded(
               flex: 3,
               child: TextField(
+                key: _textFieldKey,
                 controller: controller,
-                decoration: null,
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+                  contentPadding: textFieldPadding,
+                ),
                 textAlign: TextAlign.right,
-                style: TextStyle(fontWeight: FontWeight.w300, fontSize: 80.0),
+                style: textFieldTextStyle.copyWith(fontSize: _fontSize),
                 focusNode: AlwaysDisabledFocusNode(),
               ),
             ),
+            Expanded(
+              flex: 5,
+              child:Row(
+          children: [
+            Expanded(
+              flex:26,
+              child:
+              Column(children:[
             Expanded(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -185,6 +235,15 @@ class CalculatorState extends State<Calculator> {
                 ],
               ),
             ),
+            ],),),
+            Expanded(
+              flex: 1,
+              child: Container(
+              color: Colors.green[600],
+            ),
+            ),
+          ],
+        ),),
           ],
         ),
       ),

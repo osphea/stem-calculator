@@ -190,16 +190,16 @@ class CalculatorState extends State<Calculator> {
                 controller: pageController,
                 children: [
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Expanded(
-                        flex: 26,
+                        flex: 17,
                         child: Column(
                           children: [
                             Expanded(
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: [
                                   _buildButton(opColor, 'C', clear),
                                   _buildButton(opColor, '(', () => append('(')),
@@ -211,8 +211,7 @@ class CalculatorState extends State<Calculator> {
                             Expanded(
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: [
                                   _buildButton(numColor, '7', () => append('7')),
                                   _buildButton(numColor, '8', () => append('8')),
@@ -262,8 +261,19 @@ class CalculatorState extends State<Calculator> {
                       ),
                       Expanded(
                         flex: 1,
-                        child: Container(
-                          color: themeAccent,
+                        child: InkWell(
+                          child: Container(
+                            color: themeAccent,
+                            child: Icon(
+                              Icons.chevron_left,
+                              color: Colors.white,
+                            ),
+                          ),
+                          onTap: () => pageController.animateToPage(
+                            1,
+                            duration: Duration(milliseconds: 500),
+                            curve: Curves.ease,
+                          ),
                         ),
                       ),
                     ],

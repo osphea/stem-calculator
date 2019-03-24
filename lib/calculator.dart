@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:math_expressions/math_expressions.dart';
+import 'dart:math' as math;
 
 class Calculator extends StatefulWidget {
   @override
@@ -10,7 +11,7 @@ const textFieldPadding = EdgeInsets.only(right: 8.0);
 const textFieldTextStyle = TextStyle(fontSize: 80.0, fontWeight: FontWeight.w300);
 const buttonTextStyle = TextStyle(fontSize: 32.0, fontWeight: FontWeight.w300, color: Colors.white);
 const themePrimary = Colors.green;
-const themeAccent = Colors.greenAccent;
+var themeAccent = Colors.green[600];
 const numColor = Color.fromRGBO(48, 47, 63, .94);
 const opColor = Color.fromRGBO(22, 21, 29, .93);
 
@@ -19,6 +20,16 @@ class CalculatorState extends State<Calculator> {
   TextEditingController controller = TextEditingController(text: '');
   final GlobalKey _textFieldKey = GlobalKey();
   double _fontSize = textFieldTextStyle.fontSize;
+  final pageController = PageController(initialPage: 0);
+  String type = 'DEG';
+  bool useRadians = false;
+
+  void changeType() {
+    setState(() {
+      type = (type == 'DEG') ? 'RAD' : 'DEG';
+      useRadians = !useRadians;
+    });
+  }
 
   void _onTextChanged() {
     final inputWidth =
@@ -95,12 +106,24 @@ class CalculatorState extends State<Calculator> {
 
   void equals() {
     setState(() {
-      Parser p = new Parser();
       try {
-        controller.text = controller.text.replaceAll('e+', 'e');
-        controller.text = controller.text.replaceAll('e', '*10^');
-        Expression exp = p.parse(controller.text);
-        num outcome = exp.evaluate(EvaluationType.REAL, ContextModel());
+        String expText = controller.text
+            .replaceAll('e+', 'e')
+            .replaceAll('e', '*10^')
+            .replaceAll('÷', '/')
+            .replaceAll('×', '*')
+            .replaceAll('%', '/100')
+            .replaceAll('log(', 'log(10,')
+            .replaceAll('sin(', useRadians ? 'sin(' : 'sin(π/180.0 *')
+            .replaceAll('√(', 'sqrt(');
+        Variable pi = Variable('π');
+        Variable e = Variable('℮');
+        Parser p = new Parser();
+        Expression exp = p.parse(expText);
+        ContextModel cm = ContextModel();
+        cm.bindVariable(pi, Number(math.pi));
+        cm.bindVariable(e, Number(math.e));
+        num outcome = exp.evaluate(EvaluationType.REAL, cm);
         controller.text = outcome
             .toStringAsPrecision(13)
             .replaceAll(RegExp(r'0+$'), '')
@@ -136,7 +159,7 @@ class CalculatorState extends State<Calculator> {
       title: 'Calculator',
       theme: ThemeData(
         primarySwatch: themePrimary,
-        accentColor: Colors.green[600],
+        accentColor: themeAccent,
       ),
       home: Scaffold(
         appBar: AppBar(
@@ -163,21 +186,98 @@ class CalculatorState extends State<Calculator> {
             ),
             Expanded(
               flex: 5,
-              child:Row(
+              child: PageView(
+                controller: pageController,
                 children: [
-                  Expanded(
-                    flex:26,
-                    child:
-                    Column(children:[
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 26,
+                        child: Column(
+                          children: [
+                            Expanded(
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  _buildButton(opColor, 'C', clear),
+                                  _buildButton(opColor, '(', () => append('(')),
+                                  _buildButton(opColor, ')', () => append(')')),
+                                  _buildButton(opColor, '÷', () => append('÷')),
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  _buildButton(numColor, '7', () => append('7')),
+                                  _buildButton(numColor, '8', () => append('8')),
+                                  _buildButton(numColor, '9', () => append('9')),
+                                  _buildButton(opColor, '×', () => append('×')),
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  _buildButton(numColor, '4', () => append('4')),
+                                  _buildButton(numColor, '5', () => append('5')),
+                                  _buildButton(numColor, '6', () => append('6')),
+                                  _buildButton(opColor, '-', () => append('-')),
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  _buildButton(numColor, '1', () => append('1')),
+                                  _buildButton(numColor, '2', () => append('2')),
+                                  _buildButton(numColor, '3', () => append('3')),
+                                  _buildButton(opColor, '+', () => append('+')),
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  _buildButton(numColor, '%', () => append('%')),
+                                  _buildButton(numColor, '0', () => append('0')),
+                                  _buildButton(numColor, '.', () => append('.')),
+                                  _buildButton(opColor, '=', equals),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child: Container(
+                          color: themeAccent,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Column(
+                    children: [
                       Expanded(
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            _buildButton(opColor, 'C', clear),
-                            _buildButton(opColor, '(', () => append('(')),
-                            _buildButton(opColor, ')', () => append(')')),
-                            _buildButton(opColor, '\u00F7', () => append('/')),
+                            _buildButton(themeAccent, 'sin', () => append('sin(')),
+                            _buildButton(themeAccent, 'cos', () => append('cos(')),
+                            _buildButton(themeAccent, 'tan', () => append('tan(')),
                           ],
                         ),
                       ),
@@ -186,10 +286,9 @@ class CalculatorState extends State<Calculator> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            _buildButton(numColor, '7', () => append('7')),
-                            _buildButton(numColor, '8', () => append('8')),
-                            _buildButton(numColor, '9', () => append('9')),
-                            _buildButton(opColor, '\u00D7', () => append('*')),
+                            _buildButton(themeAccent, 'ln', () => append('ln(')),
+                            _buildButton(themeAccent, 'log', () => append('log(')),
+                            _buildButton(themeAccent, '√', () => append('√(')),
                           ],
                         ),
                       ),
@@ -198,10 +297,9 @@ class CalculatorState extends State<Calculator> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            _buildButton(numColor, '4', () => append('4')),
-                            _buildButton(numColor, '5', () => append('5')),
-                            _buildButton(numColor, '6', () => append('6')),
-                            _buildButton(opColor, '-', () => append('-')),
+                            _buildButton(themeAccent, 'π', () => append('π')),
+                            _buildButton(themeAccent, 'e', () => append('℮')),
+                            _buildButton(themeAccent, '^', () => append('^(')),
                           ],
                         ),
                       ),
@@ -210,34 +308,17 @@ class CalculatorState extends State<Calculator> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            _buildButton(numColor, '1', () => append('1')),
-                            _buildButton(numColor, '2', () => append('2')),
-                            _buildButton(numColor, '3', () => append('3')),
-                            _buildButton(opColor, '+', () => append('+')),
+                            //_buildButton(themeAccent, '', (){}),
+                            _buildButton(themeAccent, type, changeType),
+                            //_buildButton(themeAccent, '', (){}),
                           ],
                         ),
                       ),
-                      Expanded(
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            _buildButton(numColor, '%', () => append('/100')),
-                            _buildButton(numColor, '0', () => append('0')),
-                            _buildButton(numColor, '.', () => append('.')),
-                            _buildButton(opColor, '=', equals),
-                          ],
-                        ),
-                      ),
-                    ],),),
-                  Expanded(
-                    flex: 1,
-                    child: Container(
-                      color: Colors.green[600],
-                    ),
+                    ],
                   ),
                 ],
-              ),),
+              ),
+            ),
           ],
         ),
       ),

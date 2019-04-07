@@ -61,7 +61,7 @@ class CalculatorState extends State<Calculator> {
     });
   }
 
-  void append(String character) {
+  void _append(String character) {
     setState(() {
       if (_controller.selection.baseOffset >= 0) {
         _currentSelection = TextSelection(
@@ -78,7 +78,7 @@ class CalculatorState extends State<Calculator> {
     _onTextChanged();
   }
 
-  void clear([bool longPress = false]) {
+  void _clear([bool longPress = false]) {
     setState(() {
       if (longPress) {
         _controller.text = '';
@@ -101,7 +101,7 @@ class CalculatorState extends State<Calculator> {
     _onTextChanged();
   }
 
-  void equals() {
+  void _equals() {
     setState(() {
       try {
         String expText = _controller.text
@@ -136,7 +136,7 @@ class CalculatorState extends State<Calculator> {
     return Expanded(
       flex: 1,
       child: GestureDetector(
-        onLongPress: (label == 'C') ? () => clear(true) : null,
+        onLongPress: (label == 'C') ? () => _clear(true) : null,
         child: FlatButton(
           shape: BeveledRectangleBorder(),
           child: Text(
@@ -198,10 +198,10 @@ class CalculatorState extends State<Calculator> {
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: [
-                                  _buildButton(opColor, 'C', clear),
-                                  _buildButton(opColor, '(', () => append('(')),
-                                  _buildButton(opColor, ')', () => append(')')),
-                                  _buildButton(opColor, '÷', () => append('÷')),
+                                  _buildButton(opColor, 'C', _clear),
+                                  _buildButton(opColor, '(', () => _append('(')),
+                                  _buildButton(opColor, ')', () => _append(')')),
+                                  _buildButton(opColor, '÷', () => _append('÷')),
                                 ],
                               ),
                             ),
@@ -210,10 +210,10 @@ class CalculatorState extends State<Calculator> {
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: [
-                                  _buildButton(numColor, '7', () => append('7')),
-                                  _buildButton(numColor, '8', () => append('8')),
-                                  _buildButton(numColor, '9', () => append('9')),
-                                  _buildButton(opColor, '×', () => append('×')),
+                                  _buildButton(numColor, '7', () => _append('7')),
+                                  _buildButton(numColor, '8', () => _append('8')),
+                                  _buildButton(numColor, '9', () => _append('9')),
+                                  _buildButton(opColor, '×', () => _append('×')),
                                 ],
                               ),
                             ),
@@ -222,10 +222,10 @@ class CalculatorState extends State<Calculator> {
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: [
-                                  _buildButton(numColor, '4', () => append('4')),
-                                  _buildButton(numColor, '5', () => append('5')),
-                                  _buildButton(numColor, '6', () => append('6')),
-                                  _buildButton(opColor, '-', () => append('-')),
+                                  _buildButton(numColor, '4', () => _append('4')),
+                                  _buildButton(numColor, '5', () => _append('5')),
+                                  _buildButton(numColor, '6', () => _append('6')),
+                                  _buildButton(opColor, '-', () => _append('-')),
                                 ],
                               ),
                             ),
@@ -234,10 +234,10 @@ class CalculatorState extends State<Calculator> {
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: [
-                                  _buildButton(numColor, '1', () => append('1')),
-                                  _buildButton(numColor, '2', () => append('2')),
-                                  _buildButton(numColor, '3', () => append('3')),
-                                  _buildButton(opColor, '+', () => append('+')),
+                                  _buildButton(numColor, '1', () => _append('1')),
+                                  _buildButton(numColor, '2', () => _append('2')),
+                                  _buildButton(numColor, '3', () => _append('3')),
+                                  _buildButton(opColor, '+', () => _append('+')),
                                 ],
                               ),
                             ),
@@ -246,10 +246,10 @@ class CalculatorState extends State<Calculator> {
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: [
-                                  _buildButton(numColor, '%', () => append('%')),
-                                  _buildButton(numColor, '0', () => append('0')),
-                                  _buildButton(numColor, '.', () => append('.')),
-                                  _buildButton(opColor, '=', equals),
+                                  _buildButton(numColor, '%', () => _append('%')),
+                                  _buildButton(numColor, '0', () => _append('0')),
+                                  _buildButton(numColor, '.', () => _append('.')),
+                                  _buildButton(opColor, '=', _equals),
                                 ],
                               ),
                             ),
@@ -282,9 +282,9 @@ class CalculatorState extends State<Calculator> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            _buildButton(themeAccent, 'sin', () => append('sin(')),
-                            _buildButton(themeAccent, 'cos', () => append('cos(')),
-                            _buildButton(themeAccent, 'tan', () => append('tan(')),
+                            _buildButton(themeAccent, 'sin', () => _append('sin(')),
+                            _buildButton(themeAccent, 'cos', () => _append('cos(')),
+                            _buildButton(themeAccent, 'tan', () => _append('tan(')),
                           ],
                         ),
                       ),
@@ -293,9 +293,9 @@ class CalculatorState extends State<Calculator> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            _buildButton(themeAccent, 'ln', () => append('ln(')),
-                            _buildButton(themeAccent, 'log', () => append('log(')),
-                            _buildButton(themeAccent, '√', () => append('√(')),
+                            _buildButton(themeAccent, 'ln', () => _append('ln(')),
+                            _buildButton(themeAccent, 'log', () => _append('log(')),
+                            _buildButton(themeAccent, '√', () => _append('√(')),
                           ],
                         ),
                       ),
@@ -304,9 +304,9 @@ class CalculatorState extends State<Calculator> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            _buildButton(themeAccent, 'π', () => append('π')),
-                            _buildButton(themeAccent, 'e', () => append('℮')),
-                            _buildButton(themeAccent, '^', () => append('^(')),
+                            _buildButton(themeAccent, 'π', () => _append('π')),
+                            _buildButton(themeAccent, 'e', () => _append('℮')),
+                            _buildButton(themeAccent, '^', () => _append('^(')),
                           ],
                         ),
                       ),

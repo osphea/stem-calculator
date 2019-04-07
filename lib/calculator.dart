@@ -4,7 +4,7 @@ import 'dart:math' as math;
 
 class Calculator extends StatefulWidget {
   @override
-  CalculatorState createState() => CalculatorState();
+  _CalculatorState createState() => _CalculatorState();
 }
 
 const textFieldPadding = EdgeInsets.only(right: 8.0);
@@ -15,7 +15,7 @@ var themeAccent = Colors.green[600];
 const numColor = Color.fromRGBO(48, 47, 63, .94);
 const opColor = Color.fromRGBO(22, 21, 29, .93);
 
-class CalculatorState extends State<Calculator> {
+class _CalculatorState extends State<Calculator> {
   TextSelection _currentSelection = TextSelection(baseOffset: 0, extentOffset: 0);
   TextEditingController _controller = TextEditingController(text: '');
   final GlobalKey _textFieldKey = GlobalKey();

@@ -17,7 +17,7 @@ const opColor = Color.fromRGBO(22, 21, 29, .93);
 
 class CalculatorState extends State<Calculator> {
   TextSelection currentSelection = TextSelection(baseOffset: 0, extentOffset: 0);
-  TextEditingController controller = TextEditingController(text: '');
+  TextEditingController _controller = TextEditingController(text: '');
   final GlobalKey _textFieldKey = GlobalKey();
   double _fontSize = textFieldTextStyle.fontSize;
   final pageController = PageController(initialPage: 0);
@@ -38,7 +38,7 @@ class CalculatorState extends State<Calculator> {
     final textPainter = TextPainter(
       textDirection: TextDirection.ltr,
       text: TextSpan(
-        text: controller.text,
+        text: _controller.text,
         style: textFieldTextStyle,
       ),
     );
@@ -50,7 +50,7 @@ class CalculatorState extends State<Calculator> {
     while (textWidth > inputWidth && fontSize > 40.0) {
       fontSize -= 0.5;
       textPainter.text = TextSpan(
-        text: controller.text,
+        text: _controller.text,
         style: textFieldTextStyle.copyWith(fontSize: fontSize),
       );
       textPainter.layout();
@@ -64,18 +64,18 @@ class CalculatorState extends State<Calculator> {
 
   void append(String character) {
     setState(() {
-      if (controller.selection.baseOffset >= 0) {
+      if (_controller.selection.baseOffset >= 0) {
         currentSelection = TextSelection(
-            baseOffset: controller.selection.baseOffset + 1,
-            extentOffset: controller.selection.extentOffset + 1);
-        controller.text =
-            controller.text.substring(0, controller.selection.baseOffset) +
+            baseOffset: _controller.selection.baseOffset + 1,
+            extentOffset: _controller.selection.extentOffset + 1);
+        _controller.text =
+            _controller.text.substring(0, _controller.selection.baseOffset) +
                 character +
-                controller.text.substring(
-                    controller.selection.baseOffset, controller.text.length);
-        controller.selection = currentSelection;
+                _controller.text.substring(
+                    _controller.selection.baseOffset, _controller.text.length);
+        _controller.selection = currentSelection;
       } else {
-        controller.text += character;
+        _controller.text += character;
       }
     });
     _onTextChanged();
@@ -84,20 +84,20 @@ class CalculatorState extends State<Calculator> {
   void clear([bool longPress = false]) {
     setState(() {
       if (longPress) {
-        controller.text = '';
+        _controller.text = '';
       } else {
-        if (controller.selection.baseOffset >= 0) {
+        if (_controller.selection.baseOffset >= 0) {
           currentSelection = TextSelection(
-              baseOffset: controller.selection.baseOffset - 1,
-              extentOffset: controller.selection.extentOffset - 1);
-          controller.text = controller.text
-              .substring(0, controller.selection.baseOffset - 1) +
-              controller.text.substring(
-                  controller.selection.baseOffset, controller.text.length);
-          controller.selection = currentSelection;
+              baseOffset: _controller.selection.baseOffset - 1,
+              extentOffset: _controller.selection.extentOffset - 1);
+          _controller.text = _controller.text
+              .substring(0, _controller.selection.baseOffset - 1) +
+              _controller.text.substring(
+                  _controller.selection.baseOffset, _controller.text.length);
+          _controller.selection = currentSelection;
         } else {
-          controller.text =
-              controller.text.substring(0, controller.text.length - 1);
+          _controller.text =
+              _controller.text.substring(0, _controller.text.length - 1);
         }
       }
     });
@@ -107,7 +107,7 @@ class CalculatorState extends State<Calculator> {
   void equals() {
     setState(() {
       try {
-        String expText = controller.text
+        String expText = _controller.text
             .replaceAll('e+', 'e')
             .replaceAll('e', '*10^')
             .replaceAll('÷', '/')
@@ -124,12 +124,12 @@ class CalculatorState extends State<Calculator> {
         cm.bindVariable(pi, Number(math.pi));
         cm.bindVariable(e, Number(math.e));
         num outcome = exp.evaluate(EvaluationType.REAL, cm);
-        controller.text = outcome
+        _controller.text = outcome
             .toStringAsPrecision(13)
             .replaceAll(RegExp(r'0+$'), '')
             .replaceAll(RegExp(r'\.$'), '');
       } catch (e) {
-        controller.text = 'Error';
+        _controller.text = 'Error';
       }
     });
     _onTextChanged();
@@ -174,7 +174,7 @@ class CalculatorState extends State<Calculator> {
               flex: 3,
               child: TextField(
                 key: _textFieldKey,
-                controller: controller,
+                controller: _controller,
                 decoration: InputDecoration(
                   border: InputBorder.none,
                   contentPadding: textFieldPadding,

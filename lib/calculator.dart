@@ -16,7 +16,7 @@ const numColor = Color.fromRGBO(48, 47, 63, .94);
 const opColor = Color.fromRGBO(22, 21, 29, .93);
 
 class CalculatorState extends State<Calculator> {
-  TextSelection currentSelection = TextSelection(baseOffset: 0, extentOffset: 0);
+  TextSelection _currentSelection = TextSelection(baseOffset: 0, extentOffset: 0);
   TextEditingController _controller = TextEditingController(text: '');
   final GlobalKey _textFieldKey = GlobalKey();
   double _fontSize = textFieldTextStyle.fontSize;
@@ -65,7 +65,7 @@ class CalculatorState extends State<Calculator> {
   void append(String character) {
     setState(() {
       if (_controller.selection.baseOffset >= 0) {
-        currentSelection = TextSelection(
+        _currentSelection = TextSelection(
             baseOffset: _controller.selection.baseOffset + 1,
             extentOffset: _controller.selection.extentOffset + 1);
         _controller.text =
@@ -73,7 +73,7 @@ class CalculatorState extends State<Calculator> {
                 character +
                 _controller.text.substring(
                     _controller.selection.baseOffset, _controller.text.length);
-        _controller.selection = currentSelection;
+        _controller.selection = _currentSelection;
       } else {
         _controller.text += character;
       }
@@ -87,14 +87,14 @@ class CalculatorState extends State<Calculator> {
         _controller.text = '';
       } else {
         if (_controller.selection.baseOffset >= 0) {
-          currentSelection = TextSelection(
+          _currentSelection = TextSelection(
               baseOffset: _controller.selection.baseOffset - 1,
               extentOffset: _controller.selection.extentOffset - 1);
           _controller.text = _controller.text
               .substring(0, _controller.selection.baseOffset - 1) +
               _controller.text.substring(
                   _controller.selection.baseOffset, _controller.text.length);
-          _controller.selection = currentSelection;
+          _controller.selection = _currentSelection;
         } else {
           _controller.text =
               _controller.text.substring(0, _controller.text.length - 1);

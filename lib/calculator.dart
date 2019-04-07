@@ -21,12 +21,10 @@ class CalculatorState extends State<Calculator> {
   final GlobalKey _textFieldKey = GlobalKey();
   double _fontSize = textFieldTextStyle.fontSize;
   final _pageController = PageController(initialPage: 0);
-  String _angleMode = 'DEG';
   bool _useRadians = false;
 
   void _changeAngleMode() {
     setState(() {
-      _angleMode = (_angleMode == 'DEG') ? 'RAD' : 'DEG';
       _useRadians = !_useRadians;
     });
   }
@@ -112,6 +110,8 @@ class CalculatorState extends State<Calculator> {
             .replaceAll('%', '/100')
             .replaceAll('log(', 'log(10,')
             .replaceAll('sin(', _useRadians ? 'sin(' : 'sin(π/180.0 *')
+            .replaceAll('cos(', _useRadians ? 'cos(' : 'cos(π/180.0 *')
+            .replaceAll('tan(', _useRadians ? 'tan(' : 'tan(π/180.0 *')
             .replaceAll('√(', 'sqrt(');
         Variable pi = Variable('π');
         Variable e = Variable('℮');
@@ -316,7 +316,7 @@ class CalculatorState extends State<Calculator> {
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
                             //_buildButton(themeAccent, '', (){}),
-                            _buildButton(themeAccent, _angleMode, _changeAngleMode),
+                            _buildButton(themeAccent, _useRadians ? 'RAD' : 'DEG', _changeAngleMode),
                             //_buildButton(themeAccent, '', (){}),
                           ],
                         ),

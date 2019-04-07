@@ -20,20 +20,19 @@ class CalculatorState extends State<Calculator> {
   TextEditingController _controller = TextEditingController(text: '');
   final GlobalKey _textFieldKey = GlobalKey();
   double _fontSize = textFieldTextStyle.fontSize;
-  final pageController = PageController(initialPage: 0);
-  String type = 'DEG';
-  bool useRadians = false;
+  final _pageController = PageController(initialPage: 0);
+  String _angleMode = 'DEG';
+  bool _useRadians = false;
 
-  void changeType() {
+  void _changeAngleMode() {
     setState(() {
-      type = (type == 'DEG') ? 'RAD' : 'DEG';
-      useRadians = !useRadians;
+      _angleMode = (_angleMode == 'DEG') ? 'RAD' : 'DEG';
+      _useRadians = !_useRadians;
     });
   }
 
   void _onTextChanged() {
-    final inputWidth =
-        _textFieldKey.currentContext.size.width - textFieldPadding.horizontal;
+    final inputWidth = _textFieldKey.currentContext.size.width - textFieldPadding.horizontal;
 
     final textPainter = TextPainter(
       textDirection: TextDirection.ltr,
@@ -67,12 +66,10 @@ class CalculatorState extends State<Calculator> {
       if (_controller.selection.baseOffset >= 0) {
         _currentSelection = TextSelection(
             baseOffset: _controller.selection.baseOffset + 1,
-            extentOffset: _controller.selection.extentOffset + 1);
-        _controller.text =
-            _controller.text.substring(0, _controller.selection.baseOffset) +
-                character +
-                _controller.text.substring(
-                    _controller.selection.baseOffset, _controller.text.length);
+            extentOffset: _controller.selection.extentOffset + 1,
+        );
+        _controller.text = _controller.text.substring(0, _controller.selection.baseOffset) +
+            character + _controller.text.substring(_controller.selection.baseOffset, _controller.text.length);
         _controller.selection = _currentSelection;
       } else {
         _controller.text += character;
@@ -114,7 +111,7 @@ class CalculatorState extends State<Calculator> {
             .replaceAll('×', '*')
             .replaceAll('%', '/100')
             .replaceAll('log(', 'log(10,')
-            .replaceAll('sin(', useRadians ? 'sin(' : 'sin(π/180.0 *')
+            .replaceAll('sin(', _useRadians ? 'sin(' : 'sin(π/180.0 *')
             .replaceAll('√(', 'sqrt(');
         Variable pi = Variable('π');
         Variable e = Variable('℮');
@@ -187,7 +184,7 @@ class CalculatorState extends State<Calculator> {
             Expanded(
               flex: 5,
               child: PageView(
-                controller: pageController,
+                controller: _pageController,
                 children: [
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -269,7 +266,7 @@ class CalculatorState extends State<Calculator> {
                               color: Colors.white,
                             ),
                           ),
-                          onTap: () => pageController.animateToPage(
+                          onTap: () => _pageController.animateToPage(
                             1,
                             duration: Duration(milliseconds: 500),
                             curve: Curves.ease,
@@ -319,7 +316,7 @@ class CalculatorState extends State<Calculator> {
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
                             //_buildButton(themeAccent, '', (){}),
-                            _buildButton(themeAccent, type, changeType),
+                            _buildButton(themeAccent, _angleMode, _changeAngleMode),
                             //_buildButton(themeAccent, '', (){}),
                           ],
                         ),

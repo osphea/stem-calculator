@@ -27,12 +27,8 @@ class _CalculatorHomeState extends State<CalculatorHome> {
   double _fontSize = textFieldTextStyle.fontSize;
   final _pageController = PageController(initialPage: 0);
   bool _useRadians = false;
+  bool _invertedMode = false;
 
-  void _changeAngleMode() {
-    setState(() {
-      _useRadians = !_useRadians;
-    });
-  }
 
   void _onTextChanged() {
     final inputWidth = _textFieldKey.currentContext.size.width - textFieldPadding.horizontal;
@@ -301,9 +297,9 @@ class _CalculatorHomeState extends State<CalculatorHome> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            _buildButton('sin', () => _append('sin(')),
-                            _buildButton('cos', () => _append('cos(')),
-                            _buildButton('tan', () => _append('tan(')),
+                            _buildButton(_invertedMode ? 'sin⁻¹' : 'sin', () => _invertedMode ? _append('sin⁻¹(') : _append('asin(')),
+                            _buildButton(_invertedMode ? 'cos⁻¹' : 'cos', () => _invertedMode ? _append('cos⁻¹(') : _append('cos(')),
+                            _buildButton(_invertedMode ? 'tan⁻¹' : 'tan', () => _invertedMode ? _append('tan⁻¹(') : _append('tan(')),
                           ],
                         ),
                       ),
@@ -312,9 +308,9 @@ class _CalculatorHomeState extends State<CalculatorHome> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            _buildButton('ln', () => _append('ln(')),
-                            _buildButton('log', () => _append('log(')),
-                            _buildButton('√', () => _append('√(')),
+                            _buildButton(_invertedMode ? 'eˣ' : 'ln', () => _invertedMode ? _append('℮^(') : _append('ln(')),
+                            _buildButton(_invertedMode ? '10ˣ' : 'log', () => _invertedMode ? _append('10^(') : _append('log(')),
+                            _buildButton(_invertedMode ? 'x²' : '√', () => _invertedMode ? _append('^2') : _append('√(')),
                           ],
                         ),
                       ),
@@ -335,7 +331,8 @@ class _CalculatorHomeState extends State<CalculatorHome> {
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
                             //_buildButton('', (){}),
-                            _buildButton(_useRadians ? 'RAD' : 'DEG', _changeAngleMode),
+                            _buildButton(_invertedMode ? '𝗜𝗡𝗩' : 'INV', () {setState(() {_invertedMode = !_invertedMode;});}),
+                            _buildButton(_useRadians ? 'RAD' : 'DEG', () {setState(() {_useRadians = !_useRadians;});}),
                             //_buildButton('', (){}),
                           ],
                         ),

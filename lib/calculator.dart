@@ -2,23 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:math_expressions/math_expressions.dart';
 import 'dart:math' as math;
 
-class Calculator extends StatefulWidget {
+class Calculator extends StatelessWidget {
   @override
-  _CalculatorState createState() => _CalculatorState();
+  Widget build(BuildContext context) {
+    return MaterialApp(
+        title: 'Calculator',
+        theme: ThemeData(
+          primarySwatch: Colors.green,
+          accentColor: Colors.green[600],
+        ),
+        home: CalculatorHome(),
+    );
+  }
 }
 
-const textFieldPadding = EdgeInsets.only(right: 8.0);
-const textFieldTextStyle = TextStyle(fontSize: 80.0, fontWeight: FontWeight.w300);
-const buttonTextStyle = TextStyle(fontSize: 32.0, fontWeight: FontWeight.w300, color: Colors.white);
-const themePrimary = Colors.green;
-var themeAccent = Colors.green[600];
-const numColor = Color.fromRGBO(48, 47, 63, .94);
-const opColor = Color.fromRGBO(22, 21, 29, .93);
-
-class _CalculatorState extends State<Calculator> {
+class _CalculatorHomeState extends State<CalculatorHome> {
   TextSelection _currentSelection = TextSelection(baseOffset: 0, extentOffset: 0);
   TextEditingController _controller = TextEditingController(text: '');
   final GlobalKey _textFieldKey = GlobalKey();
+  final textFieldPadding = EdgeInsets.only(right: 8.0);
+  static TextStyle textFieldTextStyle = TextStyle(fontSize: 80.0, fontWeight: FontWeight.w300);
+  Color _numColor = Color.fromRGBO(48, 47, 63, .94);
+  Color _opColor = Color.fromRGBO(22, 21, 29, .93);
   double _fontSize = textFieldTextStyle.fontSize;
   final _pageController = PageController(initialPage: 0);
   bool _useRadians = false;
@@ -132,40 +137,37 @@ class _CalculatorState extends State<Calculator> {
     _onTextChanged();
   }
 
-  Widget _buildButton(Color color, String label, Function() func) {
+  Widget _buildButton(String label, [Function() func]) {
+    if (func==null) func =  (){_append(label);};
     return Expanded(
-      flex: 1,
-      child: GestureDetector(
-        onLongPress: (label == 'C') ? () => _clear(true) : null,
-        child: FlatButton(
-          shape: BeveledRectangleBorder(),
-          child: Text(
-            label,
-            style: buttonTextStyle,
+        child: InkResponse(
+          onTap: func,
+          onLongPress: (label == 'C') ? () => _clear(true) : null,
+          child: Center(
+              child: Text(
+                label,
+                style: TextStyle(
+                    fontSize: (MediaQuery.of(context).orientation == Orientation.portrait) ? 32.0 : 20.0,//24
+                    fontWeight: FontWeight.w300,
+                    color: Colors.white
+                ),
+              )
           ),
-          color: color,
-          onPressed: func,
         ),
-      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Calculator',
-      theme: ThemeData(
-        primarySwatch: themePrimary,
-        accentColor: themeAccent,
-      ),
-      home: Scaffold(
+    return  Scaffold(
         appBar: AppBar(
           backgroundColor: Theme.of(context).canvasColor,
           elevation: 0.0,
         ),
         body: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          //crossAxisAlignment: CrossAxisAlignment.end,
+          //stretch?
+          //mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             Expanded(
               flex: 3,
@@ -183,14 +185,15 @@ class _CalculatorState extends State<Calculator> {
             ),
             Expanded(
               flex: 5,
-              child: PageView(
+               child: Material(color: _opColor,
+                child: PageView(
                 controller: _pageController,
                 children: [
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Expanded(
-                        flex: 17,
+                        flex: 3,
                         child: Column(
                           children: [
                             Expanded(
@@ -198,69 +201,83 @@ class _CalculatorState extends State<Calculator> {
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: [
-                                  _buildButton(opColor, 'C', _clear),
-                                  _buildButton(opColor, '(', () => _append('(')),
-                                  _buildButton(opColor, ')', () => _append(')')),
-                                  _buildButton(opColor, '÷', () => _append('÷')),
+                                  _buildButton('C', _clear),
+                                  _buildButton('('),
+                                  _buildButton(')'),
                                 ],
                               ),
                             ),
                             Expanded(
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              flex: 4,
+                              child: Material(
+                                  color: _numColor,
+                                  child: Column(
                                 children: [
-                                  _buildButton(numColor, '7', () => _append('7')),
-                                  _buildButton(numColor, '8', () => _append('8')),
-                                  _buildButton(numColor, '9', () => _append('9')),
-                                  _buildButton(opColor, '×', () => _append('×')),
+                                  Expanded(
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        _buildButton('7'),
+                                        _buildButton('8'),
+                                        _buildButton('9'),
+                                      ],
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        _buildButton('4'),
+                                        _buildButton('5'),
+                                        _buildButton('6'),
+                                      ],
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        _buildButton('1'),
+                                        _buildButton('2'),
+                                        _buildButton('3'),
+                                      ],
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        _buildButton('%'),
+                                        _buildButton('0'),
+                                        _buildButton('.'),
+                                      ],
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
-                            Expanded(
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  _buildButton(numColor, '4', () => _append('4')),
-                                  _buildButton(numColor, '5', () => _append('5')),
-                                  _buildButton(numColor, '6', () => _append('6')),
-                                  _buildButton(opColor, '-', () => _append('-')),
-                                ],
-                              ),
-                            ),
-                            Expanded(
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  _buildButton(numColor, '1', () => _append('1')),
-                                  _buildButton(numColor, '2', () => _append('2')),
-                                  _buildButton(numColor, '3', () => _append('3')),
-                                  _buildButton(opColor, '+', () => _append('+')),
-                                ],
-                              ),
-                            ),
-                            Expanded(
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  _buildButton(numColor, '%', () => _append('%')),
-                                  _buildButton(numColor, '0', () => _append('0')),
-                                  _buildButton(numColor, '.', () => _append('.')),
-                                  _buildButton(opColor, '=', _equals),
-                                ],
-                              ),
                             ),
                           ],
                         ),
                       ),
                       Expanded(
-                        flex: 1,
-                        child: InkWell(
+                        child: Column(
+                          children: <Widget>[
+                            _buildButton('÷'),
+                            _buildButton('×'),
+                            _buildButton('-'),
+                            _buildButton('+'),
+                            _buildButton('=', _equals),
+                          ],
+                        )
+                        ),
+                      InkWell(
                           child: Container(
-                            color: themeAccent,
+                            color: Theme.of(context).accentColor,
                             child: Icon(
                               Icons.chevron_left,
                               color: Colors.white,
@@ -272,9 +289,11 @@ class _CalculatorState extends State<Calculator> {
                             curve: Curves.ease,
                           ),
                         ),
-                      ),
                     ],
                   ),
+                  Material(
+                    color: Theme.of(context).accentColor,
+                    child:
                   Column(
                     children: [
                       Expanded(
@@ -282,9 +301,9 @@ class _CalculatorState extends State<Calculator> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            _buildButton(themeAccent, 'sin', () => _append('sin(')),
-                            _buildButton(themeAccent, 'cos', () => _append('cos(')),
-                            _buildButton(themeAccent, 'tan', () => _append('tan(')),
+                            _buildButton('sin', () => _append('sin(')),
+                            _buildButton('cos', () => _append('cos(')),
+                            _buildButton('tan', () => _append('tan(')),
                           ],
                         ),
                       ),
@@ -293,9 +312,9 @@ class _CalculatorState extends State<Calculator> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            _buildButton(themeAccent, 'ln', () => _append('ln(')),
-                            _buildButton(themeAccent, 'log', () => _append('log(')),
-                            _buildButton(themeAccent, '√', () => _append('√(')),
+                            _buildButton('ln', () => _append('ln(')),
+                            _buildButton('log', () => _append('log(')),
+                            _buildButton('√', () => _append('√(')),
                           ],
                         ),
                       ),
@@ -304,9 +323,9 @@ class _CalculatorState extends State<Calculator> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            _buildButton(themeAccent, 'π', () => _append('π')),
-                            _buildButton(themeAccent, 'e', () => _append('℮')),
-                            _buildButton(themeAccent, '^', () => _append('^(')),
+                            _buildButton('π', () => _append('π')),
+                            _buildButton('e', () => _append('℮')),
+                            _buildButton('^', () => _append('^(')),
                           ],
                         ),
                       ),
@@ -315,22 +334,28 @@ class _CalculatorState extends State<Calculator> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            //_buildButton(themeAccent, '', (){}),
-                            _buildButton(themeAccent, _useRadians ? 'RAD' : 'DEG', _changeAngleMode),
-                            //_buildButton(themeAccent, '', (){}),
+                            //_buildButton('', (){}),
+                            _buildButton(_useRadians ? 'RAD' : 'DEG', _changeAngleMode),
+                            //_buildButton('', (){}),
                           ],
                         ),
                       ),
                     ],
                   ),
+                  )
                 ],
+              ),
               ),
             ),
           ],
         ),
-      ),
-    );
+      );
   }
+}
+
+class CalculatorHome extends StatefulWidget {
+  @override
+  _CalculatorHomeState createState() => _CalculatorHomeState();
 }
 
 class AlwaysDisabledFocusNode extends FocusNode {

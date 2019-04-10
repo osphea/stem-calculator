@@ -28,6 +28,7 @@ class _CalculatorHomeState extends State<CalculatorHome> {
   final _pageController = PageController(initialPage: 0);
   bool _useRadians = false;
   bool _invertedMode = false;
+  bool _toggled = false;
 
 
   void _onTextChanged() {
@@ -194,6 +195,7 @@ class _CalculatorHomeState extends State<CalculatorHome> {
         appBar: AppBar(
           backgroundColor: Theme.of(context).canvasColor,
           elevation: 0.0,
+          title: Text(_toggled?(_useRadians?'RAD':'DEG'):'', style: TextStyle(color: Colors.grey)),
         ),
         body: Column(
           children: [
@@ -363,7 +365,7 @@ class _CalculatorHomeState extends State<CalculatorHome> {
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
                             _buildButton(_invertedMode ? '𝗜𝗡𝗩' : 'INV', () {setState(() {_invertedMode = !_invertedMode;});}),
-                            _buildButton(_useRadians ? 'RAD' : 'DEG', () {setState(() {_useRadians = !_useRadians;});}),
+                            _buildButton(_useRadians ? 'RAD' : 'DEG', () {setState(() {_useRadians = !_useRadians; _toggled = true;});}),
                             _buildButton('!'),
                           ],
                         ),

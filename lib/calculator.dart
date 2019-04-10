@@ -117,6 +117,7 @@ class _CalculatorHomeState extends State<CalculatorHome> {
             .replaceAll('tan⁻¹', _useRadians? 'atan' : '180/π*atan')
             .replaceAll('π', 'PI')
             .replaceAll('℮', 'E')
+            .replaceAllMapped(RegExp(r'(\d+)\!'), (Match m) => "fact(${m.group(1)})")
             .replaceAllMapped(RegExp(r'(?:\(([^)]+)\)|(\d+(?:\.\d+)?))\^(?:\(([^)]+)\)|(\d+(?:\.\d+)?))'), (Match m) => "pow(${m.group(1) ?? ''}${m.group(2) ?? ''},${m.group(3)??''}${m.group(4)??''})")
             .replaceAll('√(', 'sqrt(');
         print(expText);
@@ -134,6 +135,7 @@ class _CalculatorHomeState extends State<CalculatorHome> {
           "log": log10,
           "pow": math.pow,
           "sqrt": math.sqrt,
+          "fact": factorial,
         };
         final evaluator = const ExpressionEvaluator();
         num outcome = evaluator.eval(exp, context);
@@ -151,7 +153,18 @@ class _CalculatorHomeState extends State<CalculatorHome> {
   double log10(num x) {
     return math.log(x)/math.log(10);
   }
-  //TODO: FACTORIAL
+
+  int factorial(int number) {
+    int factorialRange(int bottom, int top) {
+      if (top == bottom) {
+        return bottom;
+      }
+
+      return top * factorialRange(bottom, top - 1);
+    }
+
+    return factorialRange(1, number);
+  }
 
   Widget _buildButton(String label, [Function() func]) {
     if (func==null) func =  (){_append(label);};
@@ -350,10 +363,9 @@ class _CalculatorHomeState extends State<CalculatorHome> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            //_buildButton('', (){}),
                             _buildButton(_invertedMode ? '𝗜𝗡𝗩' : 'INV', () {setState(() {_invertedMode = !_invertedMode;});}),
                             _buildButton(_useRadians ? 'RAD' : 'DEG', () {setState(() {_useRadians = !_useRadians;});}),
-                            //_buildButton('', (){}),
+                            _buildButton('!'),
                           ],
                         ),
                       ),

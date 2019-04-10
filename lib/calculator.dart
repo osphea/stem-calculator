@@ -103,6 +103,8 @@ class _CalculatorHomeState extends State<CalculatorHome> {
   void _equals() {
     setState(() {
       try {
+        var diff = "(".allMatches(_controller.text).length - ")".allMatches(_controller.text).length;
+        if (diff>0) {_controller.text += ')'*diff;}
         String expText = _controller.text
             .replaceAll('e+', 'e')
             .replaceAll('e', '*10^')

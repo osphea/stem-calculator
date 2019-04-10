@@ -194,9 +194,6 @@ class _CalculatorHomeState extends State<CalculatorHome> {
           elevation: 0.0,
         ),
         body: Column(
-          //crossAxisAlignment: CrossAxisAlignment.end,
-          //stretch?
-          //mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             Expanded(
               flex: 3,

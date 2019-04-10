@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:math_expressions/math_expressions.dart';
+import 'package:expressions/expressions.dart';
 import 'dart:math' as math;
 
 class Calculator extends StatelessWidget {
@@ -109,19 +109,34 @@ class _CalculatorHomeState extends State<CalculatorHome> {
             .replaceAll('÷', '/')
             .replaceAll('×', '*')
             .replaceAll('%', '/100')
-            .replaceAll('log(', 'log(10,')
             .replaceAll('sin(', _useRadians ? 'sin(' : 'sin(π/180.0 *')
             .replaceAll('cos(', _useRadians ? 'cos(' : 'cos(π/180.0 *')
             .replaceAll('tan(', _useRadians ? 'tan(' : 'tan(π/180.0 *')
+            .replaceAll('sin⁻¹', _useRadians? 'asin' : '180/π*asin')
+            .replaceAll('cos⁻¹', _useRadians? 'acos' : '180/π*acos')
+            .replaceAll('tan⁻¹', _useRadians? 'atan' : '180/π*atan')
+            .replaceAll('π', 'PI')
+            .replaceAll('℮', 'E')
+            .replaceAllMapped(RegExp(r'(?:\(([^)]+)\)|(\d+(?:\.\d+)?))\^(?:\(([^)]+)\)|(\d+(?:\.\d+)?))'), (Match m) => "pow(${m.group(1) ?? ''}${m.group(2) ?? ''},${m.group(3)??''}${m.group(4)??''})")
             .replaceAll('√(', 'sqrt(');
-        Variable pi = Variable('π');
-        Variable e = Variable('℮');
-        Parser p = new Parser();
-        Expression exp = p.parse(expText);
-        ContextModel cm = ContextModel();
-        cm.bindVariable(pi, Number(math.pi));
-        cm.bindVariable(e, Number(math.e));
-        num outcome = exp.evaluate(EvaluationType.REAL, cm);
+        print(expText);
+        Expression exp = Expression.parse(expText);
+        var context = {
+          "PI": math.pi,
+          "E": math.e,
+          "asin": math.asin,
+          "acos": math.acos,
+          "atan": math.atan,
+          "sin": math.sin,
+          "cos": math.cos,
+          "tan": math.tan,
+          "ln": math.log,
+          "log": log10,
+          "pow": math.pow,
+          "sqrt": math.sqrt,
+        };
+        final evaluator = const ExpressionEvaluator();
+        num outcome = evaluator.eval(exp, context);
         _controller.text = outcome
             .toStringAsPrecision(13)
             .replaceAll(RegExp(r'0+$'), '')
@@ -132,6 +147,11 @@ class _CalculatorHomeState extends State<CalculatorHome> {
     });
     _onTextChanged();
   }
+
+  double log10(num x) {
+    return math.log(x)/math.log(10);
+  }
+  //TODO: FACTORIAL
 
   Widget _buildButton(String label, [Function() func]) {
     if (func==null) func =  (){_append(label);};
@@ -297,7 +317,7 @@ class _CalculatorHomeState extends State<CalculatorHome> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            _buildButton(_invertedMode ? 'sin⁻¹' : 'sin', () => _invertedMode ? _append('sin⁻¹(') : _append('asin(')),
+                            _buildButton(_invertedMode ? 'sin⁻¹' : 'sin', () => _invertedMode ? _append('sin⁻¹(') : _append('sin(')),
                             _buildButton(_invertedMode ? 'cos⁻¹' : 'cos', () => _invertedMode ? _append('cos⁻¹(') : _append('cos(')),
                             _buildButton(_invertedMode ? 'tan⁻¹' : 'tan', () => _invertedMode ? _append('tan⁻¹(') : _append('tan(')),
                           ],
@@ -319,9 +339,9 @@ class _CalculatorHomeState extends State<CalculatorHome> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            _buildButton('π', () => _append('π')),
+                            _buildButton('π'),
                             _buildButton('e', () => _append('℮')),
-                            _buildButton('^', () => _append('^(')),
+                            _buildButton('^'),
                           ],
                         ),
                       ),

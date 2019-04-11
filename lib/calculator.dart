@@ -121,7 +121,7 @@ class _CalculatorHomeState extends State<CalculatorHome> {
             .replaceAll('π', 'PI')
             .replaceAll('℮', 'E')
             .replaceAllMapped(RegExp(r'(\d+)\!'), (Match m) => "fact(${m.group(1)})")
-            .replaceAllMapped(RegExp(r'(?:\(([^)]+)\)|(\d+(?:\.\d+)?))\^(?:\(([^)]+)\)|(\d+(?:\.\d+)?))'), (Match m) => "pow(${m.group(1) ?? ''}${m.group(2) ?? ''},${m.group(3)??''}${m.group(4)??''})")
+            .replaceAllMapped(RegExp(r'(?:\(([^)]+)\)|([0-9A-Za-z]+(?:\.\d+)?))\^(?:\(([^)]+)\)|([0-9A-Za-z]+(?:\.\d+)?))'), (Match m) => "pow(${m.group(1) ?? ''}${m.group(2) ?? ''},${m.group(3)??''}${m.group(4)??''})")
             .replaceAll('√(', 'sqrt(');
         print(expText);
         Expression exp = Expression.parse(expText);

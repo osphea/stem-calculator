@@ -1,44 +1,43 @@
 import 'package:flutter/material.dart';
-import 'package:math_expressions/math_expressions.dart';
+import 'package:expressions/expressions.dart';
 import 'dart:math' as math;
 
-class Calculator extends StatefulWidget {
+class Calculator extends StatelessWidget {
   @override
-  CalculatorState createState() => CalculatorState();
+  Widget build(BuildContext context) {
+    return MaterialApp(
+        title: 'Calculator',
+        theme: ThemeData(
+          primarySwatch: Colors.green,
+          accentColor: Colors.green[600],
+        ),
+        home: CalculatorHome(),
+    );
+  }
 }
 
-const textFieldPadding = EdgeInsets.only(right: 8.0);
-const textFieldTextStyle = TextStyle(fontSize: 80.0, fontWeight: FontWeight.w300);
-const buttonTextStyle = TextStyle(fontSize: 32.0, fontWeight: FontWeight.w300, color: Colors.white);
-const themePrimary = Colors.green;
-var themeAccent = Colors.green[600];
-const numColor = Color.fromRGBO(48, 47, 63, .94);
-const opColor = Color.fromRGBO(22, 21, 29, .93);
-
-class CalculatorState extends State<Calculator> {
-  TextSelection currentSelection = TextSelection(baseOffset: 0, extentOffset: 0);
-  TextEditingController controller = TextEditingController(text: '');
+class _CalculatorHomeState extends State<CalculatorHome> {
+  TextSelection _currentSelection = TextSelection(baseOffset: 0, extentOffset: 0);
+  TextEditingController _controller = TextEditingController(text: '');
   final GlobalKey _textFieldKey = GlobalKey();
+  final textFieldPadding = EdgeInsets.only(right: 8.0);
+  static TextStyle textFieldTextStyle = TextStyle(fontSize: 80.0, fontWeight: FontWeight.w300);
+  Color _numColor = Color.fromRGBO(48, 47, 63, .94);
+  Color _opColor = Color.fromRGBO(22, 21, 29, .93);
   double _fontSize = textFieldTextStyle.fontSize;
-  final pageController = PageController(initialPage: 0);
-  String type = 'DEG';
-  bool useRadians = false;
+  final _pageController = PageController(initialPage: 0);
+  bool _useRadians = false;
+  bool _invertedMode = false;
+  bool _toggled = false;
 
-  void changeType() {
-    setState(() {
-      type = (type == 'DEG') ? 'RAD' : 'DEG';
-      useRadians = !useRadians;
-    });
-  }
 
   void _onTextChanged() {
-    final inputWidth =
-        _textFieldKey.currentContext.size.width - textFieldPadding.horizontal;
+    final inputWidth = _textFieldKey.currentContext.size.width - textFieldPadding.horizontal;
 
     final textPainter = TextPainter(
       textDirection: TextDirection.ltr,
       text: TextSpan(
-        text: controller.text,
+        text: _controller.text,
         style: textFieldTextStyle,
       ),
     );
@@ -50,7 +49,7 @@ class CalculatorState extends State<Calculator> {
     while (textWidth > inputWidth && fontSize > 40.0) {
       fontSize -= 0.5;
       textPainter.text = TextSpan(
-        text: controller.text,
+        text: _controller.text,
         style: textFieldTextStyle.copyWith(fontSize: fontSize),
       );
       textPainter.layout();
@@ -62,119 +61,149 @@ class CalculatorState extends State<Calculator> {
     });
   }
 
-  void append(String character) {
+  void _append(String character) {
     setState(() {
-      if (controller.selection.baseOffset >= 0) {
-        currentSelection = TextSelection(
-            baseOffset: controller.selection.baseOffset + 1,
-            extentOffset: controller.selection.extentOffset + 1);
-        controller.text =
-            controller.text.substring(0, controller.selection.baseOffset) +
-                character +
-                controller.text.substring(
-                    controller.selection.baseOffset, controller.text.length);
-        controller.selection = currentSelection;
+      if (_controller.selection.baseOffset >= 0) {
+        _currentSelection = TextSelection(
+            baseOffset: _controller.selection.baseOffset + 1,
+            extentOffset: _controller.selection.extentOffset + 1,
+        );
+        _controller.text = _controller.text.substring(0, _controller.selection.baseOffset) +
+            character + _controller.text.substring(_controller.selection.baseOffset, _controller.text.length);
+        _controller.selection = _currentSelection;
       } else {
-        controller.text += character;
+        _controller.text += character;
       }
     });
     _onTextChanged();
   }
 
-  void clear([bool longPress = false]) {
+  void _clear([bool longPress = false]) {
     setState(() {
       if (longPress) {
-        controller.text = '';
+        _controller.text = '';
       } else {
-        if (controller.selection.baseOffset >= 0) {
-          currentSelection = TextSelection(
-              baseOffset: controller.selection.baseOffset - 1,
-              extentOffset: controller.selection.extentOffset - 1);
-          controller.text = controller.text
-              .substring(0, controller.selection.baseOffset - 1) +
-              controller.text.substring(
-                  controller.selection.baseOffset, controller.text.length);
-          controller.selection = currentSelection;
+        if (_controller.selection.baseOffset >= 0) {
+          _currentSelection = TextSelection(
+              baseOffset: _controller.selection.baseOffset - 1,
+              extentOffset: _controller.selection.extentOffset - 1);
+          _controller.text = _controller.text
+              .substring(0, _controller.selection.baseOffset - 1) +
+              _controller.text.substring(
+                  _controller.selection.baseOffset, _controller.text.length);
+          _controller.selection = _currentSelection;
         } else {
-          controller.text =
-              controller.text.substring(0, controller.text.length - 1);
+          _controller.text =
+              _controller.text.substring(0, _controller.text.length - 1);
         }
       }
     });
     _onTextChanged();
   }
 
-  void equals() {
+  void _equals() {
     setState(() {
       try {
-        String expText = controller.text
+        var diff = "(".allMatches(_controller.text).length - ")".allMatches(_controller.text).length;
+        if (diff>0) {_controller.text += ')'*diff;}
+        String expText = _controller.text
             .replaceAll('e+', 'e')
             .replaceAll('e', '*10^')
             .replaceAll('÷', '/')
             .replaceAll('×', '*')
             .replaceAll('%', '/100')
-            .replaceAll('log(', 'log(10,')
-            .replaceAll('sin(', useRadians ? 'sin(' : 'sin(π/180.0 *')
+            .replaceAll('sin(', _useRadians ? 'sin(' : 'sin(π/180.0 *')
+            .replaceAll('cos(', _useRadians ? 'cos(' : 'cos(π/180.0 *')
+            .replaceAll('tan(', _useRadians ? 'tan(' : 'tan(π/180.0 *')
+            .replaceAll('sin⁻¹', _useRadians? 'asin' : '180/π*asin')
+            .replaceAll('cos⁻¹', _useRadians? 'acos' : '180/π*acos')
+            .replaceAll('tan⁻¹', _useRadians? 'atan' : '180/π*atan')
+            .replaceAll('π', 'PI')
+            .replaceAll('℮', 'E')
+            .replaceAllMapped(RegExp(r'(\d+)\!'), (Match m) => "fact(${m.group(1)})")
+            .replaceAllMapped(RegExp(r'(?:\(([^)]+)\)|([0-9A-Za-z]+(?:\.\d+)?))\^(?:\(([^)]+)\)|([0-9A-Za-z]+(?:\.\d+)?))'), (Match m) => "pow(${m.group(1) ?? ''}${m.group(2) ?? ''},${m.group(3)??''}${m.group(4)??''})")
             .replaceAll('√(', 'sqrt(');
-        Variable pi = Variable('π');
-        Variable e = Variable('℮');
-        Parser p = new Parser();
-        Expression exp = p.parse(expText);
-        ContextModel cm = ContextModel();
-        cm.bindVariable(pi, Number(math.pi));
-        cm.bindVariable(e, Number(math.e));
-        num outcome = exp.evaluate(EvaluationType.REAL, cm);
-        controller.text = outcome
+        print(expText);
+        Expression exp = Expression.parse(expText);
+        var context = {
+          "PI": math.pi,
+          "E": math.e,
+          "asin": math.asin,
+          "acos": math.acos,
+          "atan": math.atan,
+          "sin": math.sin,
+          "cos": math.cos,
+          "tan": math.tan,
+          "ln": math.log,
+          "log": log10,
+          "pow": math.pow,
+          "sqrt": math.sqrt,
+          "fact": factorial,
+        };
+        final evaluator = const ExpressionEvaluator();
+        num outcome = evaluator.eval(exp, context);
+        _controller.text = outcome
             .toStringAsPrecision(13)
             .replaceAll(RegExp(r'0+$'), '')
             .replaceAll(RegExp(r'\.$'), '');
       } catch (e) {
-        controller.text = 'Error';
+        _controller.text = 'Error';
       }
     });
     _onTextChanged();
   }
 
-  Widget _buildButton(Color color, String label, Function() func) {
+  double log10(num x) {
+    return math.log(x)/math.log(10);
+  }
+
+  int factorial(int number) {
+    int factorialRange(int bottom, int top) {
+      if (top == bottom) {
+        return bottom;
+      }
+
+      return top * factorialRange(bottom, top - 1);
+    }
+
+    return factorialRange(1, number);
+  }
+
+  Widget _buildButton(String label, [Function() func]) {
+    if (func==null) func =  (){_append(label);};
     return Expanded(
-      flex: 1,
-      child: GestureDetector(
-        onLongPress: (label == 'C') ? () => clear(true) : null,
-        child: FlatButton(
-          shape: BeveledRectangleBorder(),
-          child: Text(
-            label,
-            style: buttonTextStyle,
+        child: InkResponse(
+          onTap: func,
+          onLongPress: (label == 'C') ? () => _clear(true) : null,
+          child: Center(
+              child: Text(
+                label,
+                style: TextStyle(
+                    fontSize: (MediaQuery.of(context).orientation == Orientation.portrait) ? 32.0 : 20.0,//24
+                    fontWeight: FontWeight.w300,
+                    color: Colors.white
+                ),
+              )
           ),
-          color: color,
-          onPressed: func,
         ),
-      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Calculator',
-      theme: ThemeData(
-        primarySwatch: themePrimary,
-        accentColor: themeAccent,
-      ),
-      home: Scaffold(
+    return  Scaffold(
         appBar: AppBar(
           backgroundColor: Theme.of(context).canvasColor,
           elevation: 0.0,
+          title: Text(_toggled?(_useRadians?'RAD':'DEG'):'', style: TextStyle(color: Colors.grey)),
         ),
         body: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             Expanded(
               flex: 3,
               child: TextField(
                 key: _textFieldKey,
-                controller: controller,
+                controller: _controller,
                 decoration: InputDecoration(
                   border: InputBorder.none,
                   contentPadding: textFieldPadding,
@@ -186,14 +215,15 @@ class CalculatorState extends State<Calculator> {
             ),
             Expanded(
               flex: 5,
-              child: PageView(
-                controller: pageController,
+               child: Material(color: _opColor,
+                child: PageView(
+                controller: _pageController,
                 children: [
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Expanded(
-                        flex: 17,
+                        flex: 3,
                         child: Column(
                           children: [
                             Expanded(
@@ -201,83 +231,99 @@ class CalculatorState extends State<Calculator> {
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: [
-                                  _buildButton(opColor, 'C', clear),
-                                  _buildButton(opColor, '(', () => append('(')),
-                                  _buildButton(opColor, ')', () => append(')')),
-                                  _buildButton(opColor, '÷', () => append('÷')),
+                                  _buildButton('C', _clear),
+                                  _buildButton('('),
+                                  _buildButton(')'),
                                 ],
                               ),
                             ),
                             Expanded(
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              flex: 4,
+                              child: Material(
+                                  color: _numColor,
+                                  child: Column(
                                 children: [
-                                  _buildButton(numColor, '7', () => append('7')),
-                                  _buildButton(numColor, '8', () => append('8')),
-                                  _buildButton(numColor, '9', () => append('9')),
-                                  _buildButton(opColor, '×', () => append('×')),
+                                  Expanded(
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        _buildButton('7'),
+                                        _buildButton('8'),
+                                        _buildButton('9'),
+                                      ],
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        _buildButton('4'),
+                                        _buildButton('5'),
+                                        _buildButton('6'),
+                                      ],
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        _buildButton('1'),
+                                        _buildButton('2'),
+                                        _buildButton('3'),
+                                      ],
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        _buildButton('%'),
+                                        _buildButton('0'),
+                                        _buildButton('.'),
+                                      ],
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
-                            Expanded(
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  _buildButton(numColor, '4', () => append('4')),
-                                  _buildButton(numColor, '5', () => append('5')),
-                                  _buildButton(numColor, '6', () => append('6')),
-                                  _buildButton(opColor, '-', () => append('-')),
-                                ],
-                              ),
-                            ),
-                            Expanded(
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  _buildButton(numColor, '1', () => append('1')),
-                                  _buildButton(numColor, '2', () => append('2')),
-                                  _buildButton(numColor, '3', () => append('3')),
-                                  _buildButton(opColor, '+', () => append('+')),
-                                ],
-                              ),
-                            ),
-                            Expanded(
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  _buildButton(numColor, '%', () => append('%')),
-                                  _buildButton(numColor, '0', () => append('0')),
-                                  _buildButton(numColor, '.', () => append('.')),
-                                  _buildButton(opColor, '=', equals),
-                                ],
-                              ),
                             ),
                           ],
                         ),
                       ),
                       Expanded(
-                        flex: 1,
-                        child: InkWell(
+                        child: Column(
+                          children: <Widget>[
+                            _buildButton('÷'),
+                            _buildButton('×'),
+                            _buildButton('-'),
+                            _buildButton('+'),
+                            _buildButton('=', _equals),
+                          ],
+                        )
+                        ),
+                      InkWell(
                           child: Container(
-                            color: themeAccent,
+                            color: Theme.of(context).accentColor,
                             child: Icon(
                               Icons.chevron_left,
                               color: Colors.white,
                             ),
                           ),
-                          onTap: () => pageController.animateToPage(
+                          onTap: () => _pageController.animateToPage(
                             1,
                             duration: Duration(milliseconds: 500),
                             curve: Curves.ease,
                           ),
                         ),
-                      ),
                     ],
                   ),
+                  Material(
+                    color: Theme.of(context).accentColor,
+                    child:
                   Column(
                     children: [
                       Expanded(
@@ -285,9 +331,9 @@ class CalculatorState extends State<Calculator> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            _buildButton(themeAccent, 'sin', () => append('sin(')),
-                            _buildButton(themeAccent, 'cos', () => append('cos(')),
-                            _buildButton(themeAccent, 'tan', () => append('tan(')),
+                            _buildButton(_invertedMode ? 'sin⁻¹' : 'sin', () => _invertedMode ? _append('sin⁻¹(') : _append('sin(')),
+                            _buildButton(_invertedMode ? 'cos⁻¹' : 'cos', () => _invertedMode ? _append('cos⁻¹(') : _append('cos(')),
+                            _buildButton(_invertedMode ? 'tan⁻¹' : 'tan', () => _invertedMode ? _append('tan⁻¹(') : _append('tan(')),
                           ],
                         ),
                       ),
@@ -296,9 +342,9 @@ class CalculatorState extends State<Calculator> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            _buildButton(themeAccent, 'ln', () => append('ln(')),
-                            _buildButton(themeAccent, 'log', () => append('log(')),
-                            _buildButton(themeAccent, '√', () => append('√(')),
+                            _buildButton(_invertedMode ? 'eˣ' : 'ln', () => _invertedMode ? _append('℮^(') : _append('ln(')),
+                            _buildButton(_invertedMode ? '10ˣ' : 'log', () => _invertedMode ? _append('10^(') : _append('log(')),
+                            _buildButton(_invertedMode ? 'x²' : '√', () => _invertedMode ? _append('^2') : _append('√(')),
                           ],
                         ),
                       ),
@@ -307,9 +353,9 @@ class CalculatorState extends State<Calculator> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            _buildButton(themeAccent, 'π', () => append('π')),
-                            _buildButton(themeAccent, 'e', () => append('℮')),
-                            _buildButton(themeAccent, '^', () => append('^(')),
+                            _buildButton('π'),
+                            _buildButton('e', () => _append('℮')),
+                            _buildButton('^'),
                           ],
                         ),
                       ),
@@ -318,22 +364,28 @@ class CalculatorState extends State<Calculator> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            //_buildButton(themeAccent, '', (){}),
-                            _buildButton(themeAccent, type, changeType),
-                            //_buildButton(themeAccent, '', (){}),
+                            _buildButton(_invertedMode ? '𝗜𝗡𝗩' : 'INV', () {setState(() {_invertedMode = !_invertedMode;});}),
+                            _buildButton(_useRadians ? 'RAD' : 'DEG', () {setState(() {_useRadians = !_useRadians; _toggled = true;});}),
+                            _buildButton('!'),
                           ],
                         ),
                       ),
                     ],
                   ),
+                  )
                 ],
+              ),
               ),
             ),
           ],
         ),
-      ),
-    );
+      );
   }
+}
+
+class CalculatorHome extends StatefulWidget {
+  @override
+  _CalculatorHomeState createState() => _CalculatorHomeState();
 }
 
 class AlwaysDisabledFocusNode extends FocusNode {

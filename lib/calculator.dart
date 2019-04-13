@@ -105,7 +105,7 @@ class _CalculatorHomeState extends State<CalculatorHome> {
     setState(() {
       try {
         var diff = "(".allMatches(_controller.text).length - ")".allMatches(_controller.text).length;
-        if (diff>0) {_controller.text += ')'*diff;}
+        if (diff>0) _controller.text += ')'*diff;
         String expText = _controller.text
             .replaceAll('e+', 'e')
             .replaceAll('e', '*10^')
@@ -120,9 +120,11 @@ class _CalculatorHomeState extends State<CalculatorHome> {
             .replaceAll('tan⁻¹', _useRadians? 'atan' : '180/π*atan')
             .replaceAll('π', 'PI')
             .replaceAll('℮', 'E')
+            .replaceAllMapped(RegExp(r'√(\-?[0-9.A-Z]+)'), (Match m) => "sqrt(${m.group(1)})")
             .replaceAllMapped(RegExp(r'(\d+)\!'), (Match m) => "fact(${m.group(1)})")
-            .replaceAllMapped(RegExp(r'(?:\(([^)]+)\)|([0-9A-Za-z]+(?:\.\d+)?))\^(?:\(([^)]+)\)|([0-9A-Za-z]+(?:\.\d+)?))'), (Match m) => "pow(${m.group(1) ?? ''}${m.group(2) ?? ''},${m.group(3)??''}${m.group(4)??''})")
+            .replaceAllMapped(RegExp(r'\^(-?[0-9.A-Z]+)'), (Match m) => "^(${m.group(1)})")
             .replaceAll('√(', 'sqrt(');
+        expText=caretReplace(expText);
         print(expText);
         Expression exp = Expression.parse(expText);
         var context = {
@@ -136,16 +138,15 @@ class _CalculatorHomeState extends State<CalculatorHome> {
           "tan": math.tan,
           "ln": math.log,
           "log": log10,
-          "pow": math.pow,
+          "pow": pow,
           "sqrt": math.sqrt,
           "fact": factorial,
         };
         final evaluator = const ExpressionEvaluator();
         num outcome = evaluator.eval(exp, context);
         _controller.text = outcome
-            .toStringAsPrecision(13)
-            .replaceAll(RegExp(r'0+$'), '')
-            .replaceAll(RegExp(r'\.$'), '');
+            .toString()//AsPrecision(13)
+            .replaceAll(RegExp(r'\.0+$'), '');
       } catch (e) {
         _controller.text = 'Error';
       }
@@ -167,6 +168,30 @@ class _CalculatorHomeState extends State<CalculatorHome> {
     }
 
     return factorialRange(1, number);
+  }
+
+  num pow(num x, num exponent) => math.pow(x.toDouble(), exponent);
+
+  String caretReplace(String _s) {
+    if (_s.indexOf("^") > -1) {
+      var tab = [];
+      var f="pow";
+      var joker = "___joker___";
+      while (_s.indexOf("(") > -1) {
+        _s = _s.replaceAllMapped(RegExp(r'(\([^()]*\))'), (Match m) {
+          tab.add(m.group(1));
+          return joker + "${tab.length - 1}";
+        });
+      }
+      tab.add(_s);
+      _s = joker + "${tab.length - 1}";
+      while (_s.indexOf(joker) > -1) {
+        _s = _s.replaceAllMapped(RegExp(joker + r'(\d+)'), (Match m) {
+          return tab[int.parse(m.group(1))].replaceAllMapped(RegExp(r'(\w*)\^(\w*)'), (Match m) => f+"(${m.group(1)},${m.group(2)})");
+        });
+      }
+    }
+    return _s;
   }
 
   Widget _buildButton(String label, [Function() func]) {
@@ -342,9 +367,9 @@ class _CalculatorHomeState extends State<CalculatorHome> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            _buildButton(_invertedMode ? 'eˣ' : 'ln', () => _invertedMode ? _append('℮^(') : _append('ln(')),
-                            _buildButton(_invertedMode ? '10ˣ' : 'log', () => _invertedMode ? _append('10^(') : _append('log(')),
-                            _buildButton(_invertedMode ? 'x²' : '√', () => _invertedMode ? _append('^2') : _append('√(')),
+                            _buildButton(_invertedMode ? 'eˣ' : 'ln', () => _invertedMode ? _append('℮^') : _append('ln(')),
+                            _buildButton(_invertedMode ? '10ˣ' : 'log', () => _invertedMode ? _append('10^') : _append('log(')),
+                            _buildButton(_invertedMode ? 'x²' : '√', () => _invertedMode ? _append('^2') : _append('√')),
                           ],
                         ),
                       ),

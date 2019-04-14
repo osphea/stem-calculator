@@ -131,33 +131,38 @@ class _CalculatorHomeState extends State<CalculatorHome> {
         var context = {
           "PI": math.pi,
           "E": math.e,
-          "asin": math.asin,
-          "acos": math.acos,
-          "atan": math.atan,
-          "sin": math.sin,
-          "cos": math.cos,
-          "tan": math.tan,
+          "asin": asin,
+          "acos": acos,
+          "atan": atan,
+          "sin": sin,
+          "cos": cos,
+          "tan": tan,
           "ln": math.log,
           "log": log10,
-          "pow": pow,
+          "pow": math.pow,
           "sqrt": math.sqrt,
           "fact": factorial,
         };
         final evaluator = const ExpressionEvaluator();
         num outcome = evaluator.eval(exp, context);
         _controller.text = outcome
-            .toString()//AsPrecision(13)
-            .replaceAll(RegExp(r'\.0+$'), '');
+            .toStringAsPrecision(13)
+            .replaceAll(RegExp(r'\.0+(?!\d)'), '').replaceAllMapped(RegExp(r'(\.[0-9]*[1-9])0+'), (Match m) => "${m.group(1)}");
       } catch (e) {
         _controller.text = 'Error';
       }
     });
     _onTextChanged();
   }
+  double sin(num radians) => fixed(math.sin, radians);
+  double cos(num radians) => fixed(math.cos, radians);
+  double tan(num radians) => fixed(math.tan, radians);
+  double asin(num radians) => fixed(math.asin, radians);
+  double acos(num radians) => fixed(math.acos, radians);
+  double atan(num radians) => fixed(math.atan, radians);
+  double fixed(double function(num radians), num radians) => double.parse(function(radians).toStringAsFixed(11));
 
-  double log10(num x) {
-    return math.log(x)/math.log(10);
-  }
+  double log10(num x) => math.log(x)/math.log(10);
 
   int factorial(int number) {
     int factorialRange(int bottom, int top) {
@@ -170,8 +175,6 @@ class _CalculatorHomeState extends State<CalculatorHome> {
 
     return factorialRange(1, number);
   }
-
-  num pow(num x, num exponent) => math.pow(x.toDouble(), exponent);
 
   String caretReplace(String _s) {
     if (_s.indexOf("^") > -1) {

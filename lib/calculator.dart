@@ -120,10 +120,15 @@ class _CalculatorHomeState extends State<CalculatorHome> {
             .replaceAll('tan⁻¹', _useRadians? 'atan' : '180/π*atan')
             .replaceAll('π', 'PI')
             .replaceAll('℮', 'E')
+            .replaceAllMapped(RegExp(r'([0-9A-Z])\('), (Match m) => "${m.group(1)}*(")
+            .replaceAllMapped(RegExp(r'\)([0-9A-Z])'), (Match m) => ")*${m.group(1)}")
             .replaceAllMapped(RegExp(r'\b(?<!\.)\d+(?!\!|\.)\b'), (Match m) => "${m.group(0)}.0")
             .replaceAllMapped(RegExp(r'√(\-?[0-9.A-Z]+)'), (Match m) => "sqrt(${m.group(1)})")
             .replaceAllMapped(RegExp(r'(\d+)\!'), (Match m) => "fact(${m.group(1)})")
             .replaceAllMapped(RegExp(r'(-?[0-9.A-Z]+)?\^(-?[0-9.A-Z]+)?'), (Match m) =>((m.group(1)!=null)?"(${m.group(1)})":'')+"^"+((m.group(2)!=null)?"(${m.group(2)})":''))
+            .replaceAllMapped(RegExp(r'(?<=[IE])(\d)'),(Match m) => "*${m.group(1)}")
+            .replaceAllMapped(RegExp(r'(\d)(?=[A-Za-z])'),(Match m) => "${m.group(1)}*")
+            .replaceAll(')(',')*(')
             .replaceAll('√(', 'sqrt(');
         expText=caretReplace(expText);
         print(expText);

@@ -105,7 +105,7 @@ class _CalculatorHomeState extends State<CalculatorHome> {
     setState(() {
       try {
         var diff = "(".allMatches(_controller.text).length - ")".allMatches(_controller.text).length;
-        if (diff>0) {_controller.text += ')'*diff;}
+        if (diff>0) _controller.text += ')'*diff;
         String expText = _controller.text
             .replaceAll('e+', 'e')
             .replaceAll('e', '*10^')
@@ -120,20 +120,28 @@ class _CalculatorHomeState extends State<CalculatorHome> {
             .replaceAll('tan⁻¹', _useRadians? 'atan' : '180/π*atan')
             .replaceAll('π', 'PI')
             .replaceAll('℮', 'E')
+            .replaceAllMapped(RegExp(r'([0-9A-Z])\('), (Match m) => "${m.group(1)}*(")
+            .replaceAllMapped(RegExp(r'\)([0-9A-Z])'), (Match m) => ")*${m.group(1)}")
+            .replaceAllMapped(RegExp(r'\b(?<!\.)\d+(?!\!|\.)\b'), (Match m) => "${m.group(0)}.0")
+            .replaceAllMapped(RegExp(r'√(\-?[0-9.A-Z]+)'), (Match m) => "sqrt(${m.group(1)})")
             .replaceAllMapped(RegExp(r'(\d+)\!'), (Match m) => "fact(${m.group(1)})")
-            .replaceAllMapped(RegExp(r'(?:\(([^)]+)\)|([0-9A-Za-z]+(?:\.\d+)?))\^(?:\(([^)]+)\)|([0-9A-Za-z]+(?:\.\d+)?))'), (Match m) => "pow(${m.group(1) ?? ''}${m.group(2) ?? ''},${m.group(3)??''}${m.group(4)??''})")
+            .replaceAllMapped(RegExp(r'(-?[0-9.A-Z]+)?\^(-?[0-9.A-Z]+)?'), (Match m) =>((m.group(1)!=null)?"(${m.group(1)})":'')+"^"+((m.group(2)!=null)?"(${m.group(2)})":''))
+            .replaceAllMapped(RegExp(r'(?<=[IE])(\d)'),(Match m) => "*${m.group(1)}")
+            .replaceAllMapped(RegExp(r'(\d)(?=[A-Za-z])'),(Match m) => "${m.group(1)}*")
+            .replaceAll(')(',')*(')
             .replaceAll('√(', 'sqrt(');
+        expText=caretReplace(expText);
         print(expText);
         Expression exp = Expression.parse(expText);
         var context = {
           "PI": math.pi,
           "E": math.e,
-          "asin": math.asin,
-          "acos": math.acos,
-          "atan": math.atan,
-          "sin": math.sin,
-          "cos": math.cos,
-          "tan": math.tan,
+          "asin": asin,
+          "acos": acos,
+          "atan": atan,
+          "sin": sin,
+          "cos": cos,
+          "tan": tan,
           "ln": math.log,
           "log": log10,
           "pow": math.pow,
@@ -144,18 +152,22 @@ class _CalculatorHomeState extends State<CalculatorHome> {
         num outcome = evaluator.eval(exp, context);
         _controller.text = outcome
             .toStringAsPrecision(13)
-            .replaceAll(RegExp(r'0+$'), '')
-            .replaceAll(RegExp(r'\.$'), '');
+            .replaceAll(RegExp(r'\.0+(?!\d)'), '').replaceAllMapped(RegExp(r'(\.[0-9]*[1-9])0+'), (Match m) => "${m.group(1)}");
       } catch (e) {
         _controller.text = 'Error';
       }
     });
     _onTextChanged();
   }
+  double sin(num radians) => fixed(math.sin, radians);
+  double cos(num radians) => fixed(math.cos, radians);
+  double tan(num radians) => fixed(math.tan, radians);
+  double asin(num radians) => fixed(math.asin, radians);
+  double acos(num radians) => fixed(math.acos, radians);
+  double atan(num radians) => fixed(math.atan, radians);
+  double fixed(double function(num radians), num radians) => double.parse(function(radians).toStringAsFixed(11));
 
-  double log10(num x) {
-    return math.log(x)/math.log(10);
-  }
+  double log10(num x) => math.log(x)/math.log(10);
 
   int factorial(int number) {
     int factorialRange(int bottom, int top) {
@@ -167,6 +179,28 @@ class _CalculatorHomeState extends State<CalculatorHome> {
     }
 
     return factorialRange(1, number);
+  }
+
+  String caretReplace(String _s) {
+    if (_s.indexOf("^") > -1) {
+      var tab = [];
+      var f="pow";
+      var joker = "___joker___";
+      while (_s.indexOf("(") > -1) {
+        _s = _s.replaceAllMapped(RegExp(r'(\([^()]*\))'), (Match m) {
+          tab.add(m.group(1));
+          return joker + "${tab.length - 1}";
+        });
+      }
+      tab.add(_s);
+      _s = joker + "${tab.length - 1}";
+      while (_s.indexOf(joker) > -1) {
+        _s = _s.replaceAllMapped(RegExp(joker + r'(\d+)'), (Match m) {
+          return tab[int.parse(m.group(1))].replaceAllMapped(RegExp(r'(\w*)\^(\w*)'), (Match m) => f+"(${m.group(1)},${m.group(2)})");
+        });
+      }
+    }
+    return _s;
   }
 
   Widget _buildButton(String label, [Function() func]) {
@@ -342,9 +376,9 @@ class _CalculatorHomeState extends State<CalculatorHome> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            _buildButton(_invertedMode ? 'eˣ' : 'ln', () => _invertedMode ? _append('℮^(') : _append('ln(')),
-                            _buildButton(_invertedMode ? '10ˣ' : 'log', () => _invertedMode ? _append('10^(') : _append('log(')),
-                            _buildButton(_invertedMode ? 'x²' : '√', () => _invertedMode ? _append('^2') : _append('√(')),
+                            _buildButton(_invertedMode ? 'eˣ' : 'ln', () => _invertedMode ? _append('℮^') : _append('ln(')),
+                            _buildButton(_invertedMode ? '10ˣ' : 'log', () => _invertedMode ? _append('10^') : _append('log(')),
+                            _buildButton(_invertedMode ? 'x²' : '√', () => _invertedMode ? _append('^2') : _append('√')),
                           ],
                         ),
                       ),

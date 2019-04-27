@@ -1,5 +1,5 @@
 # stem-calculator
-Calculator application for dahliaOS
+calculator for dahlia
 
 ## Build With Flutter
 

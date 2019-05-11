@@ -1,7 +1,5 @@
-# stem-calculator (BROKEN)
-calculator for dahlia 
-
-this app is broken at the moment... please stand by till we fix this issue. We are very sorry for the inconvenience.
+# dahlia-calculator
+Calculator application for dahliaOS
 
 ## Build With Flutter
 

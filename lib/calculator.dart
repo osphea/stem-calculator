@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:expressions/expressions.dart';
+import 'package:math_expressions/math_expressions.dart';
 import 'dart:math' as math;
 
 class Calculator extends StatelessWidget {
@@ -112,46 +112,35 @@ class _CalculatorHomeState extends State<CalculatorHome> {
             .replaceAll('÷', '/')
             .replaceAll('×', '*')
             .replaceAll('%', '/100')
+            .replaceAll('log(', 'log(10,')
             .replaceAll('sin(', _useRadians ? 'sin(' : 'sin(π/180.0 *')
             .replaceAll('cos(', _useRadians ? 'cos(' : 'cos(π/180.0 *')
             .replaceAll('tan(', _useRadians ? 'tan(' : 'tan(π/180.0 *')
-            .replaceAll('sin⁻¹', _useRadians? 'asin' : '180/π*asin')
-            .replaceAll('cos⁻¹', _useRadians? 'acos' : '180/π*acos')
-            .replaceAll('tan⁻¹', _useRadians? 'atan' : '180/π*atan')
+            .replaceAll('sin⁻¹', _useRadians? 'arcsin' : '180/π*arcsin')
+            .replaceAll('cos⁻¹', _useRadians? 'arccos' : '180/π*arccos')
+            .replaceAll('tan⁻¹', _useRadians? 'arctan' : '180/π*arctan')
             .replaceAll('π', 'PI')
             .replaceAll('℮', 'E')
             .replaceAllMapped(RegExp(r'([0-9A-Z])\('), (Match m) => "${m.group(1)}*(")
             .replaceAllMapped(RegExp(r'\)([0-9A-Z])'), (Match m) => ")*${m.group(1)}")
             .replaceAllMapped(RegExp(r'\b(?<!\.)\d+(?!\!|\.)\b'), (Match m) => "${m.group(0)}.0")
             .replaceAllMapped(RegExp(r'√(\-?[0-9.A-Z]+)'), (Match m) => "sqrt(${m.group(1)})")
-            .replaceAllMapped(RegExp(r'(\d+)\!'), (Match m) => "fact(${m.group(1)})")
-            .replaceAllMapped(RegExp(r'(-?[0-9.A-Z]+)?\^(-?[0-9.A-Z]+)?'), (Match m) =>((m.group(1)!=null)?"(${m.group(1)})":'')+"^"+((m.group(2)!=null)?"(${m.group(2)})":''))
+            .replaceAllMapped(RegExp(r'(\d+)\!'), (Match m) => factorial(int.parse("${m.group(1)}")).toString())
             .replaceAllMapped(RegExp(r'(?<=[IE])(\d)'),(Match m) => "*${m.group(1)}")
             .replaceAllMapped(RegExp(r'(\d)(?=[A-Za-z])'),(Match m) => "${m.group(1)}*")
             .replaceAll(')(',')*(')
             .replaceAll('√(', 'sqrt(');
-        expText=caretReplace(expText);
         print(expText);
-        Expression exp = Expression.parse(expText);
-        var context = {
-          "PI": math.pi,
-          "E": math.e,
-          "asin": asin,
-          "acos": acos,
-          "atan": atan,
-          "sin": sin,
-          "cos": cos,
-          "tan": tan,
-          "ln": math.log,
-          "log": log10,
-          "pow": math.pow,
-          "sqrt": math.sqrt,
-          "fact": factorial,
-        };
-        final evaluator = const ExpressionEvaluator();
-        num outcome = evaluator.eval(exp, context);
+        Variable pi = Variable('PI');
+        Variable e = Variable('E');
+        Parser p = new Parser();
+        Expression exp = p.parse(expText);
+        ContextModel cm = ContextModel();
+        cm.bindVariable(pi, Number(math.pi));
+        cm.bindVariable(e, Number(math.e));
+        num outcome = exp.evaluate(EvaluationType.REAL, cm);
         _controller.text = outcome
-            .toStringAsPrecision(13)
+            .toStringAsFixed(13)
             .replaceAll(RegExp(r'\.0+(?!\d)'), '').replaceAllMapped(RegExp(r'(\.[0-9]*[1-9])0+'), (Match m) => "${m.group(1)}");
       } catch (e) {
         _controller.text = 'Error';
@@ -159,15 +148,6 @@ class _CalculatorHomeState extends State<CalculatorHome> {
     });
     _onTextChanged();
   }
-  double sin(num radians) => fixed(math.sin, radians);
-  double cos(num radians) => fixed(math.cos, radians);
-  double tan(num radians) => fixed(math.tan, radians);
-  double asin(num radians) => fixed(math.asin, radians);
-  double acos(num radians) => fixed(math.acos, radians);
-  double atan(num radians) => fixed(math.atan, radians);
-  double fixed(double function(num radians), num radians) => double.parse(function(radians).toStringAsFixed(11));
-
-  double log10(num x) => math.log(x)/math.log(10);
 
   int factorial(int number) {
     int factorialRange(int bottom, int top) {
@@ -179,28 +159,6 @@ class _CalculatorHomeState extends State<CalculatorHome> {
     }
 
     return factorialRange(1, number);
-  }
-
-  String caretReplace(String _s) {
-    if (_s.indexOf("^") > -1) {
-      var tab = [];
-      var f="pow";
-      var joker = "___joker___";
-      while (_s.indexOf("(") > -1) {
-        _s = _s.replaceAllMapped(RegExp(r'(\([^()]*\))'), (Match m) {
-          tab.add(m.group(1));
-          return joker + "${tab.length - 1}";
-        });
-      }
-      tab.add(_s);
-      _s = joker + "${tab.length - 1}";
-      while (_s.indexOf(joker) > -1) {
-        _s = _s.replaceAllMapped(RegExp(joker + r'(\d+)'), (Match m) {
-          return tab[int.parse(m.group(1))].replaceAllMapped(RegExp(r'(\w*)\^(\w*)'), (Match m) => f+"(${m.group(1)},${m.group(2)})");
-        });
-      }
-    }
-    return _s;
   }
 
   Widget _buildButton(String label, [Function() func]) {
